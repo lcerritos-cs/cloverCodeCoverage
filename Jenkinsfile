@@ -1,5 +1,5 @@
 node {
-  git 'https://github.com/jgarnica-cs/sonarqube-tst'
+  git 'https://github.com/eramirez-cs/cloverCodeCoverage'
   stage('SCM') {
     checkout scm
   }
@@ -8,6 +8,7 @@ node {
 
         def mvn = tool 'Maven 3.6.3';
         def coverage = '100'// replace with a Jenkins parameter or create a job to read from env
+        echo "env.CHANGE_ID ${env.CHANGE_ID}"
         if (env.BRANCH_NAME != 'master' && env.CHANGE_ID == null) {
 
             try {
@@ -35,18 +36,18 @@ node {
                  // cast to Integer so we can work with the number values
                  e2ePassed = passedMatch[0] as Float
 
-                 println ("Passed: ${e2ePassed}"
+                 println ("Passed: ${e2ePassed}")
 
                  try {
                     pullRequest.review('APPROVE', "The execution, coverage and unit test failure verification passed successfully.")
                     pullRequest.addLabel('JenkinsReviewPassed')
                     pullRequest.removeLabel('JenkinsReviewFailed')
                  } catch(ex) {
-                    echo "Fail trying to add Labels"
+                    echo "Fail trying to add Labels ${ex}"
                  }
             } catch (all) {
                 def error = "${all}"
-                echo error
+                echo "Error ${all}"
                 if(error.contains("hudson.AbortException: script returned exit code 1")) {
                     echo "Exception detected: test errors"
                     pullRequest.review('REQUEST_CHANGES', 'The build had failed. Maybe some of your unit tests are failing up')

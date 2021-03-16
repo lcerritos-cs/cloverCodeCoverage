@@ -42,7 +42,7 @@ node {
                     pullRequest.addLabel('JenkinsReviewPassed')
                     pullRequest.removeLabel('JenkinsReviewFailed')
                  } catch(ex) {
-                    echo "Published"
+                    echo "Fail trying to add Labels"
                  }
             } catch (all) {
                 def error = "${all}"

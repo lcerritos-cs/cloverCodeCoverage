@@ -50,7 +50,7 @@
                 <configuration>
                     <skip>false</skip>
                     <useFile>false</useFile>
-                    <argLine>@{argLine} -Xms1024m -Xmx1536m</argLine>
+<!--                    <argLine>@{argLine} -Xms1024m -Xmx1536m</argLine>-->
                     <!--testFailureIgnore>true</testFailureIgnore-->
                 </configuration>
             </plugin>

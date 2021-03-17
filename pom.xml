@@ -75,6 +75,16 @@
                     <skip>false</skip>
                 </configuration>
                 <version>4.3.1</version>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>clean</goal>
+                            <goal>instrument-test</goal>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 
         </plugins>

@@ -5,31 +5,33 @@ node {
         checkout scm
     }
     stage('Master Coverage') {
-        checkout([
-          $class: 'GitSCM',
-          branches: [[name: '*/master']],
-          userRemoteConfigs: [[url: 'https://github.com/eramirez-cs/cloverCodeCoverage']]
-        ])
-        try {
-            // Checkout to develop and run mvn test
-            sh "${mvn}/bin/mvn clean clover:setup test clover:aggregate clover:clover"
-            step([
-                $class: 'CloverPublisher',
-                cloverReportDir: 'target/site',
-                cloverReportFileName: 'clover.xml'   // optional, default is none
-                ])
+        if (env.CHANGE_ID) {
+            checkout([
+              $class: 'GitSCM',
+              branches: [[name: '*/master']],
+              userRemoteConfigs: [[url: 'https://github.com/eramirez-cs/cloverCodeCoverage']]
+            ])
+            try {
+                // Checkout to develop and run mvn test
+                sh "${mvn}/bin/mvn clean clover:setup test clover:aggregate clover:clover"
+                step([
+                    $class: 'CloverPublisher',
+                    cloverReportDir: 'target/site',
+                    cloverReportFileName: 'clover.xml'   // optional, default is none
+                    ])
 
-            String report = readFile ('target/site/clover/dashboard.html')
-            String[] lines = report.split('\n')
+                String report = readFile ('target/site/clover/dashboard.html')
+                String[] lines = report.split('\n')
 
-            def foundPassedLine = lines.find { line-> line =~ /div class="barPositive contribBarPositive "/ }
-            def passedMatch = (foundPassedLine =~ /[0-9]+[.][0-9]+/ )
-            masterCoverage = passedMatch[0] as Float
+                def foundPassedLine = lines.find { line-> line =~ /div class="barPositive contribBarPositive "/ }
+                def passedMatch = (foundPassedLine =~ /[0-9]+[.][0-9]+/ )
+                masterCoverage = passedMatch[0] as Float
 
-            println ("Master Coverage: ${masterCoverage}")
-        } catch (all) {
-            def error = "${all}"
-            echo "Error ${all}"
+                println ("Master Coverage: ${masterCoverage}")
+            } catch (all) {
+                def error = "${all}"
+                echo "Error ${all}"
+            }
         }
     }
     stage('Analyzing UTs') {

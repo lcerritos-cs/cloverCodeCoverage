@@ -6,14 +6,14 @@ import org.mockito.Mock;
 
 public class TestControllerTest
 {
-//    @Mock
-//    private TestServiceImpl testService;
-//
-//    @Test
-//    public void test() {
-//        TestController testController = new TestController(testService);
-//        testController.call();
-//    }
+    @Mock
+    private TestServiceImpl testService;
+
+    @Test
+    public void test() {
+        TestController testController = new TestController(testService);
+        testController.call();
+    }
 //
 //    @Test
 //    public void test2() {

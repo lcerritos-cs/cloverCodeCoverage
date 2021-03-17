@@ -1,20 +1,46 @@
 node {
-  git 'https://github.com/eramirez-cs/cloverCodeCoverage'
-  stage('SCM') {
-    checkout scm
-  }
-  stage('Analyzing UTs') {
-    withEnv(['PATH+EXTRA=/usr/sbin:/usr/bin:/sbin:/bin']) {
+    git 'https://github.com/eramirez-cs/cloverCodeCoverage'
+    stage('SCM') {
+        checkout scm
+    }
+    stage('Master Coverage') {
+        checkout([
+          $class: 'GitSCM',
+          branches: [[name: '*/master']],
+          userRemoteConfigs: [[url: 'https://github.com/eramirez-cs/cloverCodeCoverage']]
+        ])
+        def mvn = tool 'Maven 3.6.3'
+        try {
+            // Checkout to develop and run mvn test
+            sh "${mvn}/bin/mvn clean clover:setup test clover:aggregate clover:clover"
+            step([
+                $class: 'CloverPublisher',
+                cloverReportDir: 'target/site',
+                cloverReportFileName: 'clover.xml'   // optional, default is none
+                ]
 
-        def mvn = tool 'Maven 3.6.3';
-        def coverage = '100'// replace with a Jenkins parameter or create a job to read from env
-        echo sh(script: 'env|sort', returnStdout: true)
-        if (env.CHANGE_ID) {
+            masterCoverage = coverage('target/site/clover/dashboard.html')
 
-            try {
-                // Checkout to develop and run mvn test
-                 sh "${mvn}/bin/mvn clean clover:setup test clover:aggregate clover:clover"
-                 step([
+            println ("Master Coverage: ${masterCoverage}")
+        } catch (all) {
+                def error = "${all}"
+                echo "Error ${all}"
+        }
+    }
+    stage('Analyzing UTs') {
+        checkout([
+          $class: 'GitSCM',
+          branches: [[name: '*/LP-2']],
+          userRemoteConfigs: [[url: 'https://github.com/eramirez-cs/cloverCodeCoverage']]
+        ])
+        withEnv(['PATH+EXTRA=/usr/sbin:/usr/bin:/sbin:/bin']) {
+            def mvn = tool 'Maven 3.6.3'
+            echo sh(script: 'env|sort', returnStdout: true)
+            if (env.CHANGE_ID) {
+                try {
+                    // Checkout to develop and run mvn test
+                    sh "${mvn}/bin/mvn clean clover:setup test clover:aggregate clover:clover"
+                    step([
                        $class: 'CloverPublisher',
                        cloverReportDir: 'target/site',
                        cloverReportFileName: 'clover.xml',
@@ -23,49 +49,40 @@ node {
                        failingTarget: [methodCoverage: 0, conditionalCoverage: 0, statementCoverage: 0]     // optional, default is none
                      ])
 
-                 // read our HTML report into a String
-                 String report = readFile ("target/site/clover/dashboard.html")
-                 // split each line break into its own String
-                 String[] lines = report.split("\n")
+                    def branchCoverage = coverage('target/site/clover/dashboard.html')
 
-                 def foundPassedLine = lines.find{ line-> line =~ /div class="barPositive contribBarPositive "/ }
+                    println ("Master Coverage: ${masterCoverage}")
+                    println ("Branch Coverage: ${branchCoverage}")
+                    println ("Diff: ${branchCoverage} - ${masterCoverage}")
 
-                 // match for the numeric values
-                 def passedMatch = (foundPassedLine =~ /[0-9]+[.][0-9]+/)
+                    echo "Current Pull Request ID: ${pullRequest.id}"
 
-                 // cast to Integer so we can work with the number values
-                 e2ePassed = passedMatch[0] as Float
-
-                 println ("Passed: ${e2ePassed}")
-                 echo "Current Pull Request ID: ${pullRequest.id}"
-
-                 try {
-                    pullRequest.review('APPROVE', "The execution, coverage and unit test failure verification passed successfully.")
-                    pullRequest.addLabel('JenkinsReviewPassed')
-                    pullRequest.removeLabel('JenkinsReviewFailed')
-                 } catch(ex) {
-                    echo "Fail trying to add Labels ${ex}"
-                 }
+                    try {
+                        // pullRequest.review('APPROVE', 'The execution, coverage and unit test failure verification passed successfully.')
+                        // pullRequest.addLabel('JenkinsReviewPassed')
+                        // pullRequest.removeLabel('JenkinsReviewFailed')
+                 } catch (ex) {
+                        echo "Fail trying to add Labels ${ex}"
+                    }
             } catch (all) {
-                def error = "${all}"
-                echo "Error ${all}"
-                if(error.contains("hudson.AbortException: script returned exit code 1")) {
-                    echo "Exception detected: test errors"
-                    pullRequest.review('REQUEST_CHANGES', 'The build had failed. Maybe some of your unit tests are failing up')
+                    def error = "${all}"
+                    echo "Error ${all}"
+                    if (error.contains('hudson.AbortException: script returned exit code 1')) {
+                        echo 'Exception detected: test errors'
+                        // pullRequest.review('REQUEST_CHANGES', 'The build had failed. Maybe some of your unit tests are failing up')
                 } else {
-                    echo "Exception detected: error on the build"
-                    pullRequest.review('REQUEST_CHANGES', 'Error on the build')
-                }
+                        echo 'Exception detected: error on the build'
+                        // pullRequest.review('REQUEST_CHANGES', 'Error on the build')
+                    }
 
-                try {
-                    pullRequest.addLabel('JenkinsReviewFailed')
-                    pullRequest.removeLabel('JenkinsReviewPassed')
-                } catch(ex) {
-                    echo 'Finished'
+                    try {
+                        // pullRequest.addLabel('JenkinsReviewFailed')
+                        // pullRequest.removeLabel('JenkinsReviewPassed')
+                } catch (ex) {
+                        echo 'Finished'
+                    }
                 }
-
             }
         }
     }
-  }
 }

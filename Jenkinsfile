@@ -8,8 +8,8 @@ node {
 
         def mvn = tool 'Maven 3.6.3';
         def coverage = '100'// replace with a Jenkins parameter or create a job to read from env
-        echo "env.CHANGE_ID ${env.CHANGE_ID}"
-        if (env.BRANCH_NAME != 'master' && env.CHANGE_ID == null) {
+        echo sh(script: 'env|sort', returnStdout: true)
+        if (env.CHANGE_ID) {
 
             try {
                 // Checkout to develop and run mvn test
@@ -37,6 +37,7 @@ node {
                  e2ePassed = passedMatch[0] as Float
 
                  println ("Passed: ${e2ePassed}")
+                 echo "Current Pull Request ID: ${pullRequest.id}"
 
                  try {
                     pullRequest.review('APPROVE', "The execution, coverage and unit test failure verification passed successfully.")

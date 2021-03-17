@@ -13,13 +13,13 @@ public class TestServiceTest
     private Logger logger = LoggerFactory.getLogger(TestServiceTest.class);
     private TestServiceImpl testService = new TestServiceImpl();
 
-    @Test
-    public void test()
-    {
-        logger.info("test log");
-        logger.info("test log");
-        testService.testFunction();
-    }
+//    @Test
+//    public void test()
+//    {
+//        logger.info("test log");
+//        logger.info("test log");
+//        testService.testFunction();
+//    }
 
     @Test
     public void failureTest()

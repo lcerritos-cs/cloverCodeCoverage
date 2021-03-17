@@ -13,7 +13,7 @@ node {
             ])
             try {
                 // Checkout to develop and run mvn test
-                sh "${mvn}/bin/mvn clean clover:setup test clover:aggregate clover:clover"
+                sh "${mvn}/bin/mvn clean install clover:setup test clover:aggregate clover:clover"
                 step([
                     $class: 'CloverPublisher',
                     cloverReportDir: 'target/site',
@@ -45,7 +45,7 @@ node {
             if (env.CHANGE_ID) {
                 try {
                     // Checkout to develop and run mvn test
-                    sh "${mvn}/bin/mvn clean clover:setup test clover:aggregate clover:clover"
+                    sh "${mvn}/bin/mvn clean install clover:setup test clover:aggregate clover:clover"
                     step([
                        $class: 'CloverPublisher',
                        cloverReportDir: 'target/site',

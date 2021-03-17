@@ -7,9 +7,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 class CloverApplicationTests
 {
 
-    @Test
-    void contextLoads()
-    {
-    }
+//    @Test
+//    void contextLoads()
+//    {
+//    }
 
 }

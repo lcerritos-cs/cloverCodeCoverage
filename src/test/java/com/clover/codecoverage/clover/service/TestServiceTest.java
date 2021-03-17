@@ -21,11 +21,11 @@ public class TestServiceTest
 //        testService.testFunction();
 //    }
 
-    @Test
-    public void failureTest()
-    {
-        logger.info("test fail log");
-        testService.testFunction();
-        Assert.assertFalse(false);
-    }
+//    @Test
+//    public void failureTest()
+//    {
+//        logger.info("test fail log");
+//        testService.testFunction();
+//        Assert.assertFalse(false);
+//    }
 }

@@ -65,6 +65,7 @@
                 <groupId>org.openclover</groupId>
                 <artifactId>clover-maven-plugin</artifactId>
                 <configuration>
+                    <targetPercentage>67.50%</targetPercentage>
                     <generatePdf>true</generatePdf>
                     <generateHtml>true</generateHtml>
                     <generateXml>true</generateXml>

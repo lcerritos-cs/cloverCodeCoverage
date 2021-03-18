@@ -74,6 +74,10 @@ node {
                             pullRequest.review('APPROVE', 'The execution, coverage and unit test failure verification passed successfully.')
                             pullRequest.addLabel('JenkinsReviewPassed')
                             pullRequest.removeLabel('JenkinsReviewFailed')
+                            pullRequest.createStatus(status: 'success',
+                                                     context: 'continuous-integration/jenkins/pr-merge',
+                                                     description: 'All tests are passing.',
+                                                     targetUrl: "${env.JOB_URL}/env.BUILD_ID")
                         } catch (ex) {
                             echo "Fail trying to add Labels ${ex}"
                         }
@@ -83,6 +87,10 @@ node {
                             pullRequest.review('REQUEST_CHANGES', 'The execution, branch coverage is less than master coverage')
                             pullRequest.addLabel('JenkinsReviewFailed')
                             pullRequest.removeLabel('JenkinsReviewPassed')
+                            pullRequest.createStatus(status: 'failure',
+                                                     context: 'continuous-integration/jenkins/pr-merge',
+                                                     description: 'Code Coverage has decreased.',
+                                                     targetUrl: "${env.JOB_URL}/${env.BUILD_ID}")
                         } catch (ex) {
                             echo "Fail trying to add Labels ${ex}"
                         }
@@ -94,6 +102,10 @@ node {
                         if (error.contains('hudson.AbortException: script returned exit code 1')) {
                             echo 'Exception detected: test errors'
                             pullRequest.review('REQUEST_CHANGES', 'The build had failed. Maybe some of your unit tests are failing up')
+                            pullRequest.createStatus(status: 'error',
+                                                     context: 'continuous-integration/jenkins/pr-merge',
+                                                     description: 'Some unit tests are failing up.',
+                                                     targetUrl: "${env.JOB_URL}/${env.BUILD_ID}")
                         } else {
                                 echo 'Exception detected: error on the build'
                                 pullRequest.review('REQUEST_CHANGES', 'Error on the build')

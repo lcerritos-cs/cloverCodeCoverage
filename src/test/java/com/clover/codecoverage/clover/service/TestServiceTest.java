@@ -25,7 +25,7 @@ public class TestServiceTest
     public void failureTest()
     {
         logger.info("test fail log");
-        testService.testFunction();
+        testService.testFunction2();
         Assert.assertFalse(false);
     }
 }

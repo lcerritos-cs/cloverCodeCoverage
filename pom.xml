@@ -74,7 +74,7 @@
                     <includesAllSourceRoots>true</includesAllSourceRoots>
                     <skip>false</skip>
                 </configuration>
-                <version>4.3.1</version>
+                <version>4.4.1</version>
 <!--                <executions>-->
 <!--                    <execution>-->
 <!--                        <phase>validate</phase>-->

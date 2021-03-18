@@ -11,7 +11,7 @@ public class TestControllerTest
 
     @Test
     public void test() {
-        TestController testController = null;
+        TestController testController = new TestController(testService);
         testController.call();
     }
 

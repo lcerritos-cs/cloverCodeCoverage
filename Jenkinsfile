@@ -41,11 +41,36 @@ node {
           userRemoteConfigs: [[url: 'https://github.com/eramirez-cs/cloverCodeCoverage']]
         ])
         withEnv(['PATH+EXTRA=/usr/sbin:/usr/bin:/sbin:/bin']) {
-            echo sh(script: 'env|sort', returnStdout: true)
+            // echo sh(script: 'env|sort', returnStdout: true)
             if (env.CHANGE_ID) {
                 try {
                     // Checkout to develop and run mvn test
-                    sh "${mvn}/bin/mvn clean install clover:setup test clover:aggregate clover:clover"
+                    def output = sh(
+                        script: "${mvn}/bin/mvn --log-file commandResult clean install clover:setup test clover:aggregate clover:clover",
+                        returnStatus: true )
+                    def result = readFile('commandResult').trim()
+                    // echo "RESULTS: ${result}"
+
+                    if(result.contains('There are test failures')) {
+                        currentBuild.result = 'NOT_BUILT'
+                        echo 'UNIT TEST FAILURE'
+                        pullRequest.review('REQUEST_CHANGES', 'The build has failed. Some of your unit tests are failing up')
+                        pullRequest.createStatus(status: 'failure',
+                                                 context: 'continuous-integration/jenkins/pr-merge',
+                                                 description: 'Some unit tests are failing up.',
+                                                 targetUrl: "${env.JOB_URL}/${env.BUILD_ID}/clover-report/dashboard.html")
+                        return
+                    }
+                    if(result.contains('did not meet target')) {
+                        currentBuild.result = 'NOT_BUILT'
+                        echo 'BUILD FAILURE'
+                        pullRequest.review('REQUEST_CHANGES', 'Error on the build. Total coverage of did not meet target')
+                        pullRequest.createStatus(status: 'failure',
+                                                 context: 'continuous-integration/jenkins/pr-merge',
+                                                 description: ' Total coverage of actual brach did not meet target.',
+                                                 targetUrl: "${env.JOB_URL}/${env.BUILD_ID}/clover-report/dashboard.html")
+                        return
+                    }
                     step([
                        $class: 'CloverPublisher',
                        cloverReportDir: 'target/site',
@@ -69,7 +94,7 @@ node {
                     println ("Diff: ${diff}")
                     echo "Current Pull Request ID: ${pullRequest.id}"
 
-                    if(diff > 0){
+                    if(diff >= 0){
                         try {
                             pullRequest.review('APPROVE', 'The execution, coverage and unit test failure verification passed successfully.')
                             pullRequest.addLabel('JenkinsReviewPassed')
@@ -77,7 +102,7 @@ node {
                             pullRequest.createStatus(status: 'success',
                                                      context: 'continuous-integration/jenkins/pr-merge',
                                                      description: 'All tests are passing.',
-                                                     targetUrl: "${env.JOB_URL}/env.BUILD_ID")
+                                                     targetUrl: "${env.JOB_URL}/env.BUILD_ID/clover-report/dashboard.html")
                         } catch (ex) {
                             echo "Fail trying to add Labels ${ex}"
                         }
@@ -89,33 +114,28 @@ node {
                             pullRequest.removeLabel('JenkinsReviewPassed')
                             pullRequest.createStatus(status: 'failure',
                                                      context: 'continuous-integration/jenkins/pr-merge',
-                                                     description: 'Code Coverage has decreased.',
-                                                     targetUrl: "${env.JOB_URL}/${env.BUILD_ID}")
+                                                     description: 'Code Coverage has decrease; from ${masterCoverage}% to ${branchCoverage}%',
+                                                     targetUrl: "${env.JOB_URL}/${env.BUILD_ID}/clover-report/dashboard.html")
                         } catch (ex) {
                             echo "Fail trying to add Labels ${ex}"
                         }
                     }
-
                 } catch (all) {
-                        def error = "${all}"
-                        echo "Error ${all}"
-                        if (error.contains('hudson.AbortException: script returned exit code 1')) {
-                            echo 'Exception detected: test errors'
-                            pullRequest.review('REQUEST_CHANGES', 'The build had failed. Maybe some of your unit tests are failing up')
-                            pullRequest.createStatus(status: 'error',
-                                                     context: 'continuous-integration/jenkins/pr-merge',
-                                                     description: 'Some unit tests are failing up.',
-                                                     targetUrl: "${env.JOB_URL}/${env.BUILD_ID}")
-                        } else {
-                                echo 'Exception detected: error on the build'
-                                pullRequest.review('REQUEST_CHANGES', 'Error on the build')
-                        }
-                        try {
-                            pullRequest.addLabel('JenkinsReviewFailed')
-                            pullRequest.removeLabel('JenkinsReviewPassed')
-                        } catch (ex) {
-                                echo 'Finished'
-                        }
+                    def error = "${all}"
+                    echo "Error ${all}"
+                    if (error.contains('hudson.AbortException: script returned exit code 1')) {
+                        echo 'Exception detected: test errors'
+                        pullRequest.review('REQUEST_CHANGES', 'The build has failed. Maybe some of your unit tests are failing up')
+                    } else {
+                        echo 'Exception detected: error on the build'
+                        pullRequest.review('REQUEST_CHANGES', 'Error on the build')
+                    }
+                    try {
+                        pullRequest.addLabel('JenkinsReviewFailed')
+                        pullRequest.removeLabel('JenkinsReviewPassed')
+                    } catch (ex) {
+                            echo 'Finished'
+                    }
                 }
             }
         }

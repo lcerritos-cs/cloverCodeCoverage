@@ -17,7 +17,7 @@ public class TestControllerTest
 
     @Test
     public void test2() {
-        TestController testController = new TestController(testService);
-        testController.newTest();
+//        TestController testController = new TestController(testService);
+//        testController.newTest();
     }
 }

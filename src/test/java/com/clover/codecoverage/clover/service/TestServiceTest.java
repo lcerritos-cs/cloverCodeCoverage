@@ -16,16 +16,16 @@ public class TestServiceTest
     @Test
     public void test()
     {
-//        logger.info("test log");
-//        logger.info("test log");
-//        testService.testFunction();
+        logger.info("test log");
+        logger.info("test log");
+        testService.testFunction();
     }
 
-//    @Test
-//    public void failureTest()
-//    {
-//        logger.info("test fail log");
-//        testService.testFunction();
-//        Assert.assertFalse(false);
-//    }
+    @Test
+    public void failureTest()
+    {
+        logger.info("test fail log");
+        testService.testFunction2();
+        Assert.assertFalse(false);
+    }
 }

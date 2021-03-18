@@ -49,7 +49,7 @@ node {
                         script: "${mvn}/bin/mvn --log-file commandResult clean install clover:setup test clover:aggregate clover:clover",
                         returnStatus: true )
                     def result = readFile('commandResult').trim()
-                    // echo "RESULTS: ${result}"
+                    echo "RESULTS: ${result}"
 
                     if(result.contains('There are test failures')) {
                         currentBuild.result = 'NOT_BUILT'
@@ -59,16 +59,26 @@ node {
                                                  context: 'continuous-integration/jenkins/pr-merge',
                                                  description: 'Some unit tests are failing up.',
                                                  targetUrl: "${env.JOB_URL}/${env.BUILD_ID}/clover-report/dashboard.html")
+                        pullRequest.addLabel('JenkinsReviewFailed')
+                        pullRequest.removeLabel('JenkinsReviewPassed')
                         return
                     }
                     if(result.contains('did not meet target')) {
+                        String mvnResult = readFile ('commandResult')
+                        String[] linesT = mvnResult.split('\n')
+                        def foundTargetLine = linesT.find { line-> line =~ /Checking for coverage of/ }
+                        def targetMatch = (foundTargetLine =~ /[0-9]+[.][0-9]+/ )
+
+                        echo "TARGET: ${targetMatch[0]}"
                         currentBuild.result = 'NOT_BUILT'
                         echo 'BUILD FAILURE'
-                        pullRequest.review('REQUEST_CHANGES', 'Error on the build. Total coverage of did not meet target')
+                        pullRequest.review('REQUEST_CHANGES',"Error on the build. Total coverage of did not meet target ${targetMatch[0]}%")
                         pullRequest.createStatus(status: 'failure',
                                                  context: 'continuous-integration/jenkins/pr-merge',
                                                  description: ' Total coverage of actual brach did not meet target.',
                                                  targetUrl: "${env.JOB_URL}/${env.BUILD_ID}/clover-report/dashboard.html")
+                        pullRequest.addLabel('JenkinsReviewFailed')
+                        pullRequest.removeLabel('JenkinsReviewPassed')
                         return
                     }
                     step([

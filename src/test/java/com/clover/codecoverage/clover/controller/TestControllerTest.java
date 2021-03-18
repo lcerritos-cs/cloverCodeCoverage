@@ -11,13 +11,13 @@ public class TestControllerTest
 
     @Test
     public void test() {
-//        TestController testController = new TestController(testService);
-//        testController.call();
+        TestController testController = null;
+        testController.call();
     }
 
     @Test
     public void test2() {
-//        TestController testController = new TestController(testService);
-//        testController.newTest();
+        TestController testController = new TestController(testService);
+        testController.newTest();
     }
 }

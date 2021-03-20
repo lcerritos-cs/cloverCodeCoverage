@@ -11,5 +11,4 @@ update_configs:
       - "CETeam"
     ignored_updates:
       - match:
-          dependency_name: "spring*"
-
+          dependency_name: "commons*"

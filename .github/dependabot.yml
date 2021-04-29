@@ -1,0 +1,36 @@
+version: 2
+updates:
+- package-ecosystem: maven
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "11:00"
+  open-pull-requests-limit: 10
+  target-branch: master
+  reviewers:
+  - lcerritos-cs
+  labels:
+  - CETeam
+  ignore:
+  - dependency-name: commons*
+    versions:
+    - ">= 0"
+  - dependency-name: com.fasterxml.jackson.core:jackson-core
+    versions:
+    - 2.12.2
+    - 2.12.3
+  - dependency-name: org.apache.commons:commons-lang3
+    versions:
+    - 3.12.0
+  - dependency-name: org.apache.maven.plugins:maven-surefire-plugin
+    versions:
+    - 2.22.2
+  - dependency-name: org.springframework.boot:spring-boot-starter-parent
+    versions:
+    - 2.4.4
+  - dependency-name: org.apache.maven.plugins:maven-failsafe-plugin
+    versions:
+    - 2.22.2
+  - dependency-name: org.openclover:clover-maven-plugin
+    versions:
+    - 4.4.1
